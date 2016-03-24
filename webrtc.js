@@ -20,10 +20,8 @@ function WebRTC(opts) {
                 ]
             },
             receiveMedia: {
-                mandatory: {
-                    OfferToReceiveAudio: true,
-                    OfferToReceiveVideo: true
-                }
+                OfferToReceiveAudio: 1,
+                OfferToReceiveVideo: 1
             },
             enableDataChannels: true
         };

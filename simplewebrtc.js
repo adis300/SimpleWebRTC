@@ -164,10 +164,8 @@ function SimpleWebRTC(opts, roomName) {
                                 type: type,
                                 enableDataChannels: self.config.enableDataChannels && type !== 'screen',
                                 receiveMedia: {
-                                    mandatory: {
-                                        OfferToReceiveAudio: type !== 'screen' && self.config.receiveMedia.mandatory.OfferToReceiveAudio,
-                                        OfferToReceiveVideo: self.config.receiveMedia.mandatory.OfferToReceiveVideo
-                                    }
+                                    OfferToReceiveAudio: type !== 'screen' && self.config.receiveMedia.mandatory.OfferToReceiveAudio,
+                                    OfferToReceiveVideo: self.config.receiveMedia.mandatory.OfferToReceiveVideo
                                 }
                             });
                             self.emit('createdPeer', peer);
@@ -316,10 +314,8 @@ function SimpleWebRTC(opts, roomName) {
                     sharemyscreen: true,
                     enableDataChannels: false,
                     receiveMedia: {
-                        mandatory: {
-                            OfferToReceiveAudio: false,
-                            OfferToReceiveVideo: false
-                        }
+                        OfferToReceiveAudio: 0,
+                        OfferToReceiveVideo: 0
                     },
                     broadcaster: self.connection.sessionid
                 });
