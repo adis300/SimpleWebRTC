@@ -15,7 +15,7 @@ function SimpleWebRTC(opts, roomName) {
     var room = roomName;
     var options = opts || {};
     var config = this.config = {
-            url: 'https://signaling.simplewebrtc.com:443/',
+            url: 'https://sandbox.simplewebrtc.com:443/',
             ////socketio: {/* 'force new connection':true*/},
             connection: null,
             debug: false,
@@ -24,17 +24,15 @@ function SimpleWebRTC(opts, roomName) {
             enableDataChannels: true,
             autoRequestMedia: false,
             autoRemoveVideos: true,
-            adjustPeerVolume: true,
+            adjustPeerVolume: false,
             peerVolumeWhenSpeaking: 0.25,
             media: {
                 video: true,
                 audio: true
             },
-            receiveMedia: { // FIXME: remove old chrome <= 37 constraints format
-                mandatory: {
-                    OfferToReceiveAudio: true,
-                    OfferToReceiveVideo: true
-                }
+            receiveMedia: {
+                OfferToReceiveAudio: 1,
+                OfferToReceiveVideo: 1
             },
             localVideo: {
                 autoplay: true,
@@ -164,8 +162,8 @@ function SimpleWebRTC(opts, roomName) {
                                 type: type,
                                 enableDataChannels: self.config.enableDataChannels && type !== 'screen',
                                 receiveMedia: {
-                                    OfferToReceiveAudio: type !== 'screen' && self.config.receiveMedia.mandatory.OfferToReceiveAudio,
-                                    OfferToReceiveVideo: self.config.receiveMedia.mandatory.OfferToReceiveVideo
+                                    OfferToReceiveAudio: type !== 'screen' && self.config.receiveMedia.OfferToReceiveAudio ? 1:0,
+                                    OfferToReceiveVideo: self.config.receiveMedia.OfferToReceiveVideo
                                 }
                             });
                             self.emit('createdPeer', peer);
@@ -176,7 +174,7 @@ function SimpleWebRTC(opts, roomName) {
             }
 
             if (self.joinCb) self.joinCb(err, roomDescription);
-            self.emit('joinedRoom', name);
+            self.emit('joinedRoom', roomName);
         };
 
         self.connection.disconnect = function(){
@@ -202,7 +200,7 @@ function SimpleWebRTC(opts, roomName) {
 
         self.connection.onmessage = function(socketMsg){
             console.log("Raw message received:");
-            //console.log(socketMsg.data);
+            console.log(socketMsg.data);
             var msg = JSON.parse(socketMsg.data);
             switch (msg.event){
                 case 'message':
@@ -221,7 +219,7 @@ function SimpleWebRTC(opts, roomName) {
             }
         };
     } else {
-        connection = this.connection = this.config.connection;
+        this.connection = this.config.connection;
     }
 
     // instantiate our main WebRTC helper
@@ -347,9 +345,13 @@ SimpleWebRTC.prototype = Object.create(WildEmitter.prototype, {
 SimpleWebRTC.prototype.leaveRoom = function () {
     if (this.roomName) {
         this.connection.emit('leave');
+        /*
         this.webrtc.peers.forEach(function (peer) {
             peer.end();
-        });
+        });*/
+        while(this.webrtc.peers.length){
+            this.webrtc.peers.shirt().end();
+        }
         if (this.getLocalScreen()) {
             this.stopScreenShare();
         }
@@ -484,7 +486,9 @@ SimpleWebRTC.prototype.stopScreenShare = function () {
     // a hack to emit the event the removes the video
     // element that we want
     if (videoEl) this.emit('videoRemoved', videoEl);
-    if (stream) stream.stop();
+    if (stream) {
+        stream.getTracks().forEach(function(track){track.stop();});
+    }
     this.webrtc.peers.forEach(function (peer) {
         if (peer.broadcaster) {
             peer.end();
@@ -495,15 +499,21 @@ SimpleWebRTC.prototype.stopScreenShare = function () {
 
 SimpleWebRTC.prototype.testReadiness = function () {
     var self = this;
-    if (this.webrtc.localStream && this.sessionReady) {
-        self.emit('readyToCall', self.connection.sessionid);
+    if(this.sessionReady){
+        if(this.webrtc.localStreams && this.webrtc.localStreams.length > 0){
+            self.emit('readyToCall', self.connection.sessionid);
+        }else if(!this.config.media.video && !this.config.media.audio){
+            self.emit('readyToCall', self.connection.sessionid);
+        }
     }
+
 };
 
 /**
  * Unnecessary because we are not creating room
  *
 SimpleWebRTC.prototype.createRoom = function (name, cb) {
+    this.roomName = name;
     if (arguments.length === 2) {
         this.connection.emit('create', name, cb);
     } else {

@@ -28,6 +28,9 @@ function Peer(options) {
     // Create an RTCPeerConnection via the polyfill
     this.pc = new PeerConnection(this.parent.config.peerConnectionConfig, this.parent.config.peerConnectionConstraints);
     this.pc.on('ice', this.onIceCandidate.bind(this));
+    this.pc.on('endOfCandidates', function(event){
+        self.send('endOfCandidates', event);
+    });
     this.pc.on('offer', function (offer) {
         if (self.parent.config.nick) offer.nick = self.parent.config.nick;
         self.send('offer', offer);
@@ -110,7 +113,7 @@ Peer.prototype.handleMessage = function (message) {
                 return;
             }
             // auto-accept
-            self.pc.answer(self.receiveMedia, function (err, sessionDescription) {
+            self.pc.answer(function (err, sessionDescription) {
                 //self.send('answer', sessionDescription);
             });
         });
@@ -126,6 +129,13 @@ Peer.prototype.handleMessage = function (message) {
         this.parent.emit('mute', {id: message.from, name: message.payload.name});
     } else if (message.type === 'unmute') {
         this.parent.emit('unmute', {id: message.from, name: message.payload.name});
+    } else if(message.type === 'endOfCandidates'){
+        console.log("Peer connection");
+        console.log(this.pc);
+        var mLines = this.pc.pc.peerconnection.transceivers || [];
+        mLines.forEach(function(mLine){
+            if(mLine.iceTransport) mLine.iceTransport.addRemoteCandidate({});
+        });
     }
 };
 
@@ -215,7 +225,8 @@ Peer.prototype.start = function () {
 
 Peer.prototype.icerestart = function () {
     var constraints = this.receiveMedia;
-    constraints.mandatory.IceRestart = true;
+    // DISI: constraints.mandatory.IceRestart = true;
+    constraints.IceRestart = true;
     this.pc.offer(constraints, function (err, success) { });
 };
 
