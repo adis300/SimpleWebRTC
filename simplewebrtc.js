@@ -493,7 +493,8 @@ SimpleWebRTC.prototype.stopScreenShare = function () {
     // element that we want
     if (videoEl) this.emit('videoRemoved', videoEl);
     if (stream) {
-        stream.getTracks().forEach(function(track){track.stop();});
+        if(stream.stop) stream.stop();
+        else stream.getTracks().forEach(function(track){track.stop();});
     }
     this.webrtc.peers.forEach(function (peer) {
         if (peer.broadcaster) {
