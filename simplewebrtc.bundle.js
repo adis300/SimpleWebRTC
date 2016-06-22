@@ -6865,9 +6865,12 @@ Peer.prototype.handleRemoteStreamAdded = function (event) {
 };
 
 Peer.prototype.handleStreamRemoved = function () {
-    this.parent.peers.splice(this.parent.peers.indexOf(this), 1);
-    this.closed = true;
-    this.parent.emit('peerStreamRemoved', this);
+    var peerIndex = this.parent.peers.indexOf(this);
+    if (peerIndex > -1) {
+        this.parent.peers.splice(peerIndex, 1);
+        this.closed = true;
+        this.parent.emit('peerStreamRemoved', this);
+    }
 };
 
 Peer.prototype.handleDataChannelAdded = function (channel) {
@@ -7257,7 +7260,8 @@ SimpleWebRTC.prototype.leaveRoom = function () {
             peer.end();
         });*/
         while(this.webrtc.peers.length){
-            this.webrtc.peers.shirt().end();
+            //this.webrtc.peers.shirt().end();
+            this.webrtc.peers[0].end();
         }
         if (this.getLocalScreen()) {
             this.stopScreenShare();
