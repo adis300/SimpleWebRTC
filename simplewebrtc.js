@@ -356,7 +356,8 @@ SimpleWebRTC.prototype.leaveRoom = function () {
             peer.end();
         });*/
         while(this.webrtc.peers.length){
-            this.webrtc.peers.shirt().end();
+            //this.webrtc.peers.shirt().end();
+            this.webrtc.peers[0].end();
         }
         if (this.getLocalScreen()) {
             this.stopScreenShare();

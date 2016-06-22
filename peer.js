@@ -252,9 +252,12 @@ Peer.prototype.handleRemoteStreamAdded = function (event) {
 };
 
 Peer.prototype.handleStreamRemoved = function () {
-    this.parent.peers.splice(this.parent.peers.indexOf(this), 1);
-    this.closed = true;
-    this.parent.emit('peerStreamRemoved', this);
+    var peerIndex = this.parent.peers.indexOf(this);
+    if (peerIndex > -1) {
+        this.parent.peers.splice(peerIndex, 1);
+        this.closed = true;
+        this.parent.emit('peerStreamRemoved', this);
+    }
 };
 
 Peer.prototype.handleDataChannelAdded = function (channel) {
