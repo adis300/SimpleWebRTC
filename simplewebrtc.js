@@ -332,7 +332,9 @@ function SimpleWebRTC(opts, roomName) {
         });
     });
     this.webrtc.on('localScreenStopped', function(stream) {
-        self.stopScreenShare();
+        if (self.getLocalScreen()) {
+            self.stopScreenShare();
+        }
     });
 
     this.webrtc.on('channelMessage', function(peer, label, data) {
@@ -487,7 +489,7 @@ SimpleWebRTC.prototype.stopScreenShare = function() {
     this.connection.emit('unshareScreen');
     var videoEl = document.getElementById('localScreen');
     var container = this.getRemoteVideoContainer();
-    var stream = this.getLocalScreen();
+    // var stream = this.getLocalScreen();
 
     if (this.config.autoRemoveVideos && container && videoEl) {
         container.removeChild(videoEl);
@@ -496,16 +498,16 @@ SimpleWebRTC.prototype.stopScreenShare = function() {
     // a hack to emit the event the removes the video
     // element that we want
     if (videoEl) this.emit('videoRemoved', videoEl);
-    if (stream) {
-        if (stream.stop) stream.stop();
-        else stream.getTracks().forEach(function(track) { track.stop(); });
+    if (this.getLocalScreen()) {
+        this.webrtc.stopScreenShare();
+        // if (stream.stop) stream.stop();
+        // else stream.getTracks().forEach(function(track) { track.stop(); });
     }
     this.webrtc.peers.forEach(function(peer) {
         if (peer.broadcaster) {
             peer.end();
         }
     });
-    //delete this.webrtc.localScreen;
 };
 
 SimpleWebRTC.prototype.testReadiness = function() {
