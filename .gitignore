@@ -7,3 +7,6 @@ firefox*.bz2
 
 /.project
 /.idea
+
+# JetBrains IDEs
+ +.idea
