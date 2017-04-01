@@ -15,7 +15,7 @@
     "description": "World's easiest webrtc",
     "dependencies": {
         "filetransfer": "^2.0.4",
-        "localmedia": "^2.2.0",
+        "localmedia": "^2.2.1",
         "rtcpeerconnection": "^5.1.1",
         "webrtcsupport": "^2.2.0",
         "wildemitter": "^1.2.0",
